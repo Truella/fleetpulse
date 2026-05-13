@@ -31,13 +31,11 @@ import { useThrottle } from '../../composables/useThrottle'
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent])
 
 const UPDATE_OPTS = { notMerge: false, lazyUpdate: true }
-
 const VEHICLE_COLORS = ['#F59E0B', '#60a5fa', '#a78bfa']
 
 const metricsStore = useMetricsStore()
 const chartRef = ref<InstanceType<typeof VChart> | null>(null)
 
-// Pick top 3 vehicles by data density
 const topVehicles = computed(() => {
   const map = metricsStore.fuelByVehicle
   return [...map.entries()]
@@ -63,7 +61,7 @@ const seriesData = computed(() =>
 const option = computed(() => ({
   animation: false,
   backgroundColor: 'transparent',
-  grid: { top: 32, right: 12, bottom: 24, left: 44 },
+  grid: { top: 32, right: 12, bottom: 32, left: 44 },
   legend: {
     top: 0,
     right: 0,
@@ -79,12 +77,19 @@ const option = computed(() => ({
   },
   xAxis: {
     type: 'time',
+    maxInterval: 30 * 1000,
     axisLabel: {
       color: '#6b7280',
       fontFamily: 'IBM Plex Mono',
       fontSize: 10,
-      formatter: (val: number) =>
-        new Date(val).toLocaleTimeString('en-GB', { hour12: false }),
+      hideOverlap: true,
+      formatter: (val: number) => {
+        const d = new Date(val)
+        const hh = String(d.getHours()).padStart(2, '0')
+        const mm = String(d.getMinutes()).padStart(2, '0')
+        const ss = String(d.getSeconds()).padStart(2, '0')
+        return `${hh}:${mm}:${ss}`
+      },
     },
     axisLine: { lineStyle: { color: '#2a2d35' } },
     splitLine: { show: false },
@@ -101,10 +106,7 @@ const option = computed(() => ({
 }))
 
 const throttledUpdate = useThrottle(() => {
-  chartRef.value?.setOption(
-    { series: seriesData.value },
-    false
-  )
+  chartRef.value?.setOption({ series: seriesData.value }, false)
 }, 100)
 
 watch(() => metricsStore.fuelByVehicle, throttledUpdate)

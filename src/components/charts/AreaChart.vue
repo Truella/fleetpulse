@@ -23,10 +23,7 @@ import { ref, computed, watch } from 'vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
-import {
-  GridComponent,
-  TooltipComponent,
-} from 'echarts/components'
+import { GridComponent, TooltipComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { useMetricsStore } from '../../stores/metricsStore'
 import { useThrottle } from '../../composables/useThrottle'
@@ -43,7 +40,7 @@ const hasSeries = computed(() => metricsStore.avgSpeedSeries.length > 0)
 const option = computed(() => ({
   animation: false,
   backgroundColor: 'transparent',
-  grid: { top: 8, right: 12, bottom: 24, left: 44 },
+  grid: { top: 8, right: 12, bottom: 32, left: 44 },
   tooltip: {
     trigger: 'axis',
     backgroundColor: '#1a1d24',
@@ -58,12 +55,19 @@ const option = computed(() => ({
   },
   xAxis: {
     type: 'time',
+    maxInterval: 30 * 1000, // label at most every 30s
     axisLabel: {
       color: '#6b7280',
       fontFamily: 'IBM Plex Mono',
       fontSize: 10,
-      formatter: (val: number) =>
-        new Date(val).toLocaleTimeString('en-GB', { hour12: false }),
+      hideOverlap: true,
+      formatter: (val: number) => {
+        const d = new Date(val)
+        const hh = String(d.getHours()).padStart(2, '0')
+        const mm = String(d.getMinutes()).padStart(2, '0')
+        const ss = String(d.getSeconds()).padStart(2, '0')
+        return `${hh}:${mm}:${ss}`
+      },
     },
     axisLine: { lineStyle: { color: '#2a2d35' } },
     splitLine: { show: false },
@@ -97,7 +101,6 @@ const option = computed(() => ({
   ],
 }))
 
-// Throttled update — only push new data to chart, don't rebuild option
 const throttledUpdate = useThrottle(() => {
   chartRef.value?.setOption(
     { series: [{ data: metricsStore.avgSpeedSeries }] },
