@@ -22,7 +22,7 @@ const ROUTE_IDS = [
 	"R-ABJ-KAN-09",
 ];
 
-const STATUSES: FleetTick["status"][] = ["moving", "stopped", "idle", "alert"];
+//const STATUSES: FleetTick["status"][] = ["moving", "stopped", "idle", "alert"];
 
 const EVENTS = [
 	"Engine check passed",

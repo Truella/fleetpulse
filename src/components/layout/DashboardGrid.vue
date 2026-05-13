@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import type { Ref } from "vue";
 import { useMetricsStore } from '../../stores/metricsStore'
 import { useFeedStore } from '../../stores/feedStore'
 import MetricCard from '../ui/MetricCard.vue'
@@ -62,8 +63,8 @@ const fuelHistory = ref<number[]>([])
 const alertHistory = ref<number[]>([])
 const onTimeRate = ref(0)
 
-function pushHistory(arr: ReturnType<typeof ref<number[]>>, val: number) {
-  arr.value = [...arr.value.slice(-(MAX_HISTORY - 1)), val]
+function pushHistory(arr: Ref<number[]>, val: number) {
+  arr.value = [...arr.value.slice(-(MAX_HISTORY - 1)), val];
 }
 
 watch(
