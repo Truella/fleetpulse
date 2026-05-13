@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+:root {
+  --color-bg: #111318;
+  --color-surface: #1a1d24;
+  --color-border: #2a2d35;
+  --color-accent: #F59E0B;
+  --color-text: #e8e6e1;
+  --color-muted: #6b7280;
+}
+
+.light {
+  --color-bg: #F8F7F4;
+  --color-surface: #ffffff;
+  --color-border: #e2e0db;
+  --color-accent: #F59E0B;
+  --color-text: #1a1d24;
+  --color-muted: #6b7280;
+}
+
+html {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
