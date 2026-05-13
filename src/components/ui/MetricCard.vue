@@ -2,12 +2,14 @@
   <div class="card" :class="`card--${variant}`">
     <div class="card__header">
       <span class="card__label">{{ label }}</span>
-      <span class="card__trend" :class="trendClass" v-if="trend !== 0">
+      <span v-if="trend !== 0" class="card__trend" :class="trendClass">
         {{ trend > 0 ? '▲' : '▼' }}
       </span>
     </div>
 
-    <div class="card__value font-mono">{{ displayValue }}</div>
+    <div class="card__value font-mono" :style="{ color: valueColor }">
+      {{ displayValue }}
+    </div>
 
     <!-- Inline SVG sparkline -->
     <svg
@@ -22,9 +24,7 @@
           <stop offset="100%" :stop-color="accentColor" stop-opacity="0" />
         </linearGradient>
       </defs>
-      <!-- Fill area -->
       <path :d="areaPath" :fill="`url(#grad-${uid})`" />
-      <!-- Line -->
       <polyline
         :points="sparkPoints"
         fill="none"
@@ -43,7 +43,6 @@ import { computed } from 'vue'
 
 const WIDTH = 120
 const HEIGHT = 36
-
 let _uidCounter = 0
 
 const props = defineProps<{
@@ -51,9 +50,7 @@ const props = defineProps<{
   value: number
   unit?: string
   decimals?: number
-  // 'default' | 'fuel' | 'alert'
   variant?: 'default' | 'fuel' | 'alert'
-  // last 20 raw values for sparkline
   history: number[]
 }>()
 
@@ -64,21 +61,16 @@ const displayValue = computed(() => {
   return props.unit ? `${v}${props.unit}` : v
 })
 
-// Trend: compare last value to 5 values ago
 const trend = computed(() => {
   const h = props.history
   if (h.length < 6) return 0
   return h[h.length - 1] - h[h.length - 6]
 })
 
-const trendClass = computed(() => {
-  if (props.variant === 'fuel') {
-    return trend.value > 0 ? 'card__trend--up' : 'card__trend--down'
-  }
-  return trend.value > 0 ? 'card__trend--up' : 'card__trend--down'
-})
+const trendClass = computed(() =>
+  trend.value > 0 ? 'card__trend--up' : 'card__trend--down'
+)
 
-// Fuel card color threshold
 const accentColor = computed(() => {
   if (props.variant === 'fuel') {
     if (props.value < 20) return '#ef4444'
@@ -89,7 +81,13 @@ const accentColor = computed(() => {
   return '#F59E0B'
 })
 
-// Sparkline geometry
+const valueColor = computed(() => {
+  if (props.variant === 'fuel' || props.variant === 'alert') return accentColor.value
+  return 'var(--color-text)'
+})
+
+const variant = computed(() => props.variant ?? 'default')
+
 const sparkPoints = computed(() => {
   const data = props.history.slice(-20)
   if (data.length < 2) return ''
@@ -120,8 +118,6 @@ const areaPath = computed(() => {
   })
   return `M0,${HEIGHT} L${pts[0]} L${pts.join(' L')} L${WIDTH},${HEIGHT} Z`
 })
-
-const variant = computed(() => props.variant ?? 'default')
 </script>
 
 <style scoped>
@@ -168,9 +164,8 @@ const variant = computed(() => props.variant ?? 'default')
   font-size: 1.75rem;
   font-weight: 500;
   line-height: 1;
-  color: var(--color-text);
   font-variant-numeric: tabular-nums;
-  transition: color 0.3s;
+  transition: color 0.4s ease;
 }
 
 .card__sparkline {

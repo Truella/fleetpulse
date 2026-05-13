@@ -23,10 +23,15 @@ export function safeParseTick(raw: unknown): FleetTick | null {
 	return result.data;
 }
 
+// Dev-only: window.__injectBadTick() to test resilience
 if (import.meta.env.DEV) {
 	(window as unknown as Record<string, unknown>).__injectBadTick = () => {
-		const bad = { timestamp: "not-a-number", vehicleId: "", speed: 999 };
+		const bad = { timestamp: "not-a-number", vehicleId: "", speed: 9999 };
 		const result = safeParseTick(bad);
-		console.log("[FleetPulse] Bad tick result:", result);
+		console.log(
+			"[FleetPulse] Bad tick injected. Result (should be null):",
+			result,
+		);
+		return result;
 	};
 }

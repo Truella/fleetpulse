@@ -20,7 +20,7 @@
   --color-bg: #F8F7F4;
   --color-surface: #ffffff;
   --color-border: #e2e0db;
-  --color-accent: #F59E0B;
+  --color-accent: #d97706;
   --color-text: #1a1d24;
   --color-muted: #6b7280;
 }
@@ -29,19 +29,37 @@ html {
   font-family: 'Inter', sans-serif;
   background-color: var(--color-bg);
   color: var(--color-text);
+  font-size: clamp(13px, 1vw, 16px);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 .font-mono {
   font-family: 'IBM Plex Mono', monospace;
 }
 
-/* Feed row enter transition */
-.feed-enter-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-.feed-enter-from {
-  opacity: 0;
-  transform: translateY(-4px);
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+/* Feed row enter animation */
+@keyframes feedIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Chart no-data overlay */
