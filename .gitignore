@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+fleetpulse-commits.md
+fleetpulse-prd.md

@@ -33,25 +33,26 @@
       <AreaChart />
       <LineChart />
       <BarChart />
-      <CandlestickChart />
+      <CandleStickChart />
     </section>
 
     <section class="dashboard__feed">
-      <slot name="feed" />
+      <ActivityFeed />
     </section>
   </main>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Ref } from "vue";
+import type { Ref } from 'vue'
 import { useMetricsStore } from '../../stores/metricsStore'
 import { useFeedStore } from '../../stores/feedStore'
 import MetricCard from '../ui/MetricCard.vue'
 import AreaChart from '../charts/AreaChart.vue'
 import LineChart from '../charts/LineChart.vue'
-//import BarChart from '../charts/BarChart.vue'
-//import CandlestickChart from '../charts/CandlestickChart.vue'
+import BarChart from '../charts/BarChart.vue'
+import CandleStickChart from '../charts/CandleStickChart.vue'
+import ActivityFeed from '../ui/ActivityFeed.vue'
 
 const metricsStore = useMetricsStore()
 const feedStore = useFeedStore()
