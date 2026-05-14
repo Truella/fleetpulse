@@ -26,15 +26,13 @@
 
     <!-- Right: controls -->
     <div class="topbar__controls">
-      <button class="topbar__btn" :title="`Pause (Space)`" @click="uiStore.togglePause()">
+      <button class="topbar__btn" @click="uiStore.togglePause()">
         <span class="topbar__btn-icon">{{ uiStore.isPaused ? '▶' : '⏸' }}</span>
         <span class="topbar__btn-label">{{ uiStore.isPaused ? 'Resume' : 'Pause' }}</span>
         <kbd class="topbar__kbd">Space</kbd>
       </button>
-
-      <button class="topbar__btn" title="Toggle theme" @click="uiStore.toggleTheme()">
-        <span class="topbar__btn-icon">{{ uiStore.isDark ? '☀' : '☾' }}</span>
-        <span class="topbar__btn-label sr-only">Theme</span>
+      <button class="topbar__btn topbar__btn--icon-only" @click="uiStore.toggleTheme()">
+        <span>{{ uiStore.isDark ? '☀' : '☾' }}</span>
       </button>
     </div>
 
@@ -56,9 +54,9 @@ const uiStore = useUiStore()
 
 const TIME_RANGES: { label: string; value: TimeRange }[] = [
   { label: 'Live', value: 'live' },
-  { label: '1m',   value: '1m' },
-  { label: '5m',   value: '5m' },
-  { label: '1h',   value: '1h' },
+  { label: '1m',  value: '1m' },
+  { label: '5m',  value: '5m' },
+  { label: '1h',  value: '1h' },
 ]
 </script>
 
@@ -72,8 +70,10 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
   gap: 1rem;
   padding: 0 1.25rem;
   height: 52px;
+  min-height: 52px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
+  overflow: visible;
 }
 
 .topbar__brand {
@@ -86,6 +86,7 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
 .topbar__logo {
   color: var(--color-accent);
   font-size: 1.1rem;
+  line-height: 1;
 }
 
 .topbar__name {
@@ -113,6 +114,7 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
   border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.15s;
+  line-height: 1.4;
 }
 
 .topbar__pill:hover {
@@ -145,6 +147,8 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
   border: 1px solid var(--color-border);
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
+  line-height: 1.4;
 }
 
 .topbar__btn:hover {
@@ -152,13 +156,11 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
   border-color: var(--color-muted);
 }
 
-.topbar__btn-icon {
-  font-size: 0.8rem;
+.topbar__btn--icon-only {
+  padding: 0.25rem 0.5rem;
 }
 
-.topbar__btn-label {
-  font-size: 0.75rem;
-}
+.topbar__btn-icon { font-size: 0.8rem; }
 
 .topbar__kbd {
   font-family: 'IBM Plex Mono', monospace;
@@ -172,10 +174,10 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
 
 .topbar__banner {
   position: absolute;
-  bottom: -32px;
+  top: 52px;
   left: 0;
   right: 0;
-  height: 32px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -187,31 +189,13 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
 }
 
 .banner-enter-active,
-.banner-leave-active {
-  transition: opacity 0.2s, transform 0.2s;
-}
+.banner-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .banner-enter-from,
-.banner-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
+.banner-leave-to { opacity: 0; transform: translateY(-4px); }
 
-/* Mobile: hide labels, kbd hint */
 @media (max-width: 767px) {
-  .topbar__btn-label:not(.sr-only) { display: none; }
-  .topbar__kbd { display: none; }
-  .topbar__name { display: none; }
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border-width: 0;
+  .topbar__btn-label { display: none; }
+  .topbar__kbd       { display: none; }
+  .topbar__name      { display: none; }
 }
 </style>

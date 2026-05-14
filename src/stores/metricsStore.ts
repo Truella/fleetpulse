@@ -1,16 +1,15 @@
 import { defineStore } from "pinia";
 import { shallowRef, computed } from "vue";
 import type { FleetTick, OHLCPoint } from "../types";
+import { useUiStore } from "./uiStore";
 
 const MAX_SERIES = 120;
 const OHLC_WINDOW_MS = 30_000;
 
 export const useMetricsStore = defineStore("metrics", () => {
 	const series = shallowRef<FleetTick[]>([]);
-	const isPaused = shallowRef(false);
 
 	function push(tick: FleetTick) {
-		if (isPaused.value) return;
 		const next = [...series.value, tick];
 		if (next.length > MAX_SERIES) next.shift();
 		series.value = next;
@@ -20,22 +19,30 @@ export const useMetricsStore = defineStore("metrics", () => {
 		series.value = [];
 	}
 
-	// Derived: fleet-wide average speed over time (for area chart)
+	// Slice series by the ui time range cutoff
+	const visibleSeries = computed(() => {
+		const uiStore = useUiStore();
+		const cutoff = uiStore.timeRangeCutoff;
+		if (!cutoff) return series.value;
+		return series.value.filter((t) => t.timestamp >= cutoff);
+	});
+
+	// Fleet-wide avg speed over time (area chart)
 	const avgSpeedSeries = computed(() =>
-		series.value.map((t) => [t.timestamp, t.speed] as [number, number]),
+		visibleSeries.value.map((t) => [t.timestamp, t.speed] as [number, number]),
 	);
 
-	// Derived: per-vehicle fuel levels — returns last reading per vehicle
+	// Per-vehicle fuel levels (line chart)
 	const fuelByVehicle = computed(() => {
 		const map = new Map<string, { timestamp: number; fuel: number }[]>();
-		for (const t of series.value) {
+		for (const t of visibleSeries.value) {
 			if (!map.has(t.vehicleId)) map.set(t.vehicleId, []);
 			map.get(t.vehicleId)!.push({ timestamp: t.timestamp, fuel: t.fuel });
 		}
 		return map;
 	});
 
-	// Derived: active vehicle count (seen in last 3 ticks worth of data)
+	// Active vehicle count (last 3s)
 	const activeVehicleCount = computed(() => {
 		const cutoff = Date.now() - 3000;
 		const seen = new Set(
@@ -44,7 +51,7 @@ export const useMetricsStore = defineStore("metrics", () => {
 		return seen.size;
 	});
 
-	// Derived: average fuel across all vehicles (last reading per vehicle)
+	// Avg fuel across all vehicles (last reading per vehicle)
 	const avgFuelRemaining = computed(() => {
 		const latest = new Map<string, number>();
 		for (const t of series.value) latest.set(t.vehicleId, t.fuel);
@@ -52,17 +59,15 @@ export const useMetricsStore = defineStore("metrics", () => {
 		return [...latest.values()].reduce((a, b) => a + b, 0) / latest.size;
 	});
 
-	// Derived: OHLC candles bucketed into 30s windows
+	// OHLC candles (candlestick chart)
 	const ohlcSeries = computed<OHLCPoint[]>(() => {
-		if (!series.value.length) return [];
-
+		if (!visibleSeries.value.length) return [];
 		const buckets = new Map<number, number[]>();
-		for (const t of series.value) {
+		for (const t of visibleSeries.value) {
 			const bucket = Math.floor(t.timestamp / OHLC_WINDOW_MS) * OHLC_WINDOW_MS;
 			if (!buckets.has(bucket)) buckets.set(bucket, []);
 			buckets.get(bucket)!.push(t.speed);
 		}
-
 		return [...buckets.entries()]
 			.sort(([a], [b]) => a - b)
 			.map(([time, speeds]) => ({
@@ -74,10 +79,10 @@ export const useMetricsStore = defineStore("metrics", () => {
 			}));
 	});
 
-	// Derived: deliveries per route (bar chart)
+	// Deliveries per route (bar chart)
 	const deliveriesByRoute = computed(() => {
 		const counts = new Map<string, number>();
-		for (const t of series.value) {
+		for (const t of visibleSeries.value) {
 			if (t.status === "moving") {
 				counts.set(t.routeId, (counts.get(t.routeId) ?? 0) + 1);
 			}
@@ -87,9 +92,9 @@ export const useMetricsStore = defineStore("metrics", () => {
 
 	return {
 		series,
-		isPaused,
 		push,
 		clear,
+		visibleSeries,
 		avgSpeedSeries,
 		fuelByVehicle,
 		activeVehicleCount,
