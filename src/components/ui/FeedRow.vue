@@ -24,24 +24,17 @@ defineProps<{ entry: FeedEntry }>()
   padding: 0.4rem 1rem;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.75rem;
-  transition: background 0.1s;
-  animation: feedIn 0.15s ease both;
+  /* No animation here — virtual scroller recycles DOM nodes,
+     per-row animations cause the jump you're seeing */
 }
 
 .feed-row:hover {
   background: color-mix(in srgb, var(--color-accent) 4%, transparent);
 }
 
-/* Severity left-border accent */
-.feed-row--critical {
-  border-left: 2px solid #ef4444;
-}
-.feed-row--warning {
-  border-left: 2px solid #F59E0B;
-}
-.feed-row--info {
-  border-left: 2px solid transparent;
-}
+.feed-row--critical { border-left: 2px solid #ef4444; }
+.feed-row--warning  { border-left: 2px solid #F59E0B; }
+.feed-row--info     { border-left: 2px solid transparent; }
 
 .feed-row__time {
   color: var(--color-muted);
@@ -60,17 +53,6 @@ defineProps<{ entry: FeedEntry }>()
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-@keyframes feedIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (max-width: 767px) {

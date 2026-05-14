@@ -1,9 +1,10 @@
 <template>
   <div class="feed">
-    <!-- Header -->
     <div class="feed__header">
       <span class="feed__title">Activity Feed</span>
-      <span class="feed__count font-mono">{{ feedStore.filteredFeed.length }} events</span>
+      <span class="feed__count font-mono" :key="feedStore.filteredFeed.length" :class="{ 'feed__count--flash': true }">
+        {{ feedStore.filteredFeed.length }} events
+      </span>
       <div class="feed__search">
         <input
           v-model="localSearch"
@@ -15,7 +16,6 @@
       </div>
     </div>
 
-    <!-- Column headers -->
     <div class="feed__cols">
       <span>Time</span>
       <span>Vehicle</span>
@@ -23,20 +23,19 @@
       <span>Severity</span>
     </div>
 
-    <!-- Virtual list -->
     <RecycleScroller
       v-if="feedStore.filteredFeed.length"
       class="feed__scroller"
       :items="feedStore.filteredFeed"
-      :item-size="36"
+      :item-size="37"
       key-field="id"
+      :buffer="80"
     >
       <template #default="{ item }">
         <FeedRow :entry="item" />
       </template>
     </RecycleScroller>
 
-    <!-- Empty state -->
     <div v-else class="feed__empty font-mono">
       {{ feedStore.searchTerm ? 'No matching events.' : 'No events yet — stream starting…' }}
     </div>
@@ -52,8 +51,6 @@ import { useDebounce } from '../../composables/useDebounce'
 import FeedRow from './FeedRow.vue'
 
 const feedStore = useFeedStore()
-
-// Local model for the input, synced to store with debounce
 const localSearch = ref('')
 
 const syncSearch = useDebounce((val: string) => {
@@ -96,6 +93,16 @@ watch(localSearch, val => syncSearch(val))
   flex-shrink: 0;
 }
 
+/* Subtle amber flash when count changes (keyed element re-mounts) */
+.feed__count--flash {
+  animation: countFlash 0.4s ease both;
+}
+
+@keyframes countFlash {
+  0%   { color: var(--color-accent); }
+  100% { color: var(--color-muted); }
+}
+
 .feed__search {
   margin-left: auto;
 }
@@ -112,13 +119,8 @@ watch(localSearch, val => syncSearch(val))
   transition: border-color 0.15s;
 }
 
-.feed__input::placeholder {
-  color: var(--color-muted);
-}
-
-.feed__input:focus {
-  border-color: var(--color-accent);
-}
+.feed__input::placeholder { color: var(--color-muted); }
+.feed__input:focus { border-color: var(--color-accent); }
 
 .feed__cols {
   display: grid;
@@ -152,9 +154,6 @@ watch(localSearch, val => syncSearch(val))
     gap: 0.5rem;
     padding: 0.3rem 0.75rem;
   }
-
-  .feed__input {
-    width: 150px;
-  }
+  .feed__input { width: 150px; }
 }
 </style>
