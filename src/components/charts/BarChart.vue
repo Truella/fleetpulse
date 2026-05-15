@@ -40,7 +40,7 @@ const hasSeries = computed(() => sortedRoutes.value.length > 0)
 const option = computed(() => ({
   animation: false,
   backgroundColor: 'transparent',
-  grid: { top: 8, right: 24, bottom: 8, left: 8, outerBounds: true },
+  grid: { top: 8, right: 24, bottom: 8, left: 8, containLabel: true },
   tooltip: {
     trigger: 'axis',
     axisPointer: { type: 'none' },

@@ -37,7 +37,7 @@
       <AreaChart />
       <LineChart />
       <BarChart />
-      <CandlestickChart />
+      <CandleStickChart />
     </section>
 
     <!-- Feed -->
@@ -55,7 +55,7 @@ import MetricCard from '../ui/MetricCard.vue'
 import AreaChart from '../charts/AreaChart.vue'
 import LineChart from '../charts/LineChart.vue'
 import BarChart from '../charts/BarChart.vue'
-import CandlestickChart from '../charts/CandlestickChart.vue'
+import CandleStickChart from '../charts/CandleStickChart.vue'
 import ActivityFeed from '../ui/ActivityFeed.vue'
 
 const metricsStore = useMetricsStore()
@@ -68,7 +68,7 @@ const fuelHistory = ref<number[]>([])
 const alertHistory = ref<number[]>([])
 const onTimeRate = ref(0)
 
-function pushHistory(arr: ReturnType<typeof ref<number[]>>, val: number) {
+function pushHistory(arr: { value: number[] }, val: number) {
   arr.value = [...arr.value.slice(-(MAX_HISTORY - 1)), val]
 }
 

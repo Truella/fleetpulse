@@ -12,7 +12,9 @@
         :update-options="UPDATE_OPTS"
         autoresize
       />
-      <div v-else class="absolute inset-0 flex items-center justify-center font-mono text-[0.75rem] text-[var(--color-muted)]">Waiting for data…</div>
+      <div v-else class="absolute inset-0 flex items-center justify-center font-mono text-[0.75rem] text-[var(--color-muted)]">
+        Waiting for data…
+      </div>
     </div>
   </div>
 </template>
@@ -30,7 +32,18 @@ use([CanvasRenderer, LineChart, GridComponent, TooltipComponent])
 
 const UPDATE_OPTS = { notMerge: false, lazyUpdate: true }
 const metricsStore = useMetricsStore()
-const hasSeries = computed(() => metricsStore.avgSpeedSeries.length > 0)
+const hasSeries = computed(() => metricsStore.avgSpeedSeries.length > 1)
+
+// Format timestamp as HH:MM:SS for category axis
+const timeLabels = computed(() =>
+  metricsStore.avgSpeedSeries.map(([ts]) =>
+    new Date(ts).toLocaleTimeString('en-GB', { hour12: false })
+  )
+)
+
+const speedValues = computed(() =>
+  metricsStore.avgSpeedSeries.map(([, speed]) => speed)
+)
 
 const option = computed(() => ({
   animation: false,
@@ -41,25 +54,22 @@ const option = computed(() => ({
     backgroundColor: '#1a1d24',
     borderColor: '#2a2d35',
     textStyle: { color: '#e8e6e1', fontFamily: 'IBM Plex Mono', fontSize: 11 },
-    formatter: (params: { value: [number, number] }[]) => {
+    formatter: (params: { dataIndex: number; value: number }[]) => {
       if (!params[0]) return ''
-      const [ts, speed] = params[0].value
-      const time = new Date(ts).toLocaleTimeString('en-GB', { hour12: false })
-      return `${time}<br/><b>${speed.toFixed(1)} km/h</b>`
+      const label = timeLabels.value[params[0].dataIndex] ?? ''
+      return `${label}<br/><b>${params[0].value.toFixed(1)} km/h</b>`
     },
   },
   xAxis: {
-    type: 'time',
-    maxInterval: 30 * 1000,
+    type: 'category',
+    data: timeLabels.value,
+    boundaryGap: false,
     axisLabel: {
       color: '#6b7280',
       fontFamily: 'IBM Plex Mono',
       fontSize: 10,
       hideOverlap: true,
-      formatter: (val: number) => {
-        const d = new Date(val)
-        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`
-      },
+      interval: 'auto',
     },
     axisLine: { lineStyle: { color: '#2a2d35' } },
     splitLine: { show: false },
@@ -74,7 +84,7 @@ const option = computed(() => ({
   },
   series: [{
     type: 'line',
-    data: metricsStore.avgSpeedSeries,
+    data: speedValues.value,
     smooth: true,
     symbol: 'none',
     lineStyle: { color: '#F59E0B', width: 2 },

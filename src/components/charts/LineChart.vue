@@ -12,7 +12,9 @@
         :update-options="UPDATE_OPTS"
         autoresize
       />
-      <div v-else class="absolute inset-0 flex items-center justify-center font-mono text-[0.75rem] text-[var(--color-muted)]">Waiting for data…</div>
+      <div v-else class="absolute inset-0 flex items-center justify-center font-mono text-[0.75rem] text-[var(--color-muted)]">
+        Waiting for data…
+      </div>
     </div>
   </div>
 </template>
@@ -41,13 +43,22 @@ const topVehicles = computed(() =>
 
 const hasSeries = computed(() => topVehicles.value.length > 0)
 
+// Use category axis — derive shared time labels from first vehicle's data
+const timeLabels = computed(() => {
+  const first = topVehicles.value[0]
+  if (!first) return []
+  return (metricsStore.fuelByVehicle.get(first) ?? []).map(p =>
+    new Date(p.timestamp).toLocaleTimeString('en-GB', { hour12: false })
+  )
+})
+
 const seriesData = computed(() =>
   topVehicles.value.map((vid, i) => ({
     name: vid,
     type: 'line' as const,
     smooth: true,
     symbol: 'none',
-    data: (metricsStore.fuelByVehicle.get(vid) ?? []).map(p => [p.timestamp, p.fuel]),
+    data: (metricsStore.fuelByVehicle.get(vid) ?? []).map(p => p.fuel),
     lineStyle: { color: VEHICLE_COLORS[i], width: 2 },
     itemStyle: { color: VEHICLE_COLORS[i] },
   }))
@@ -69,17 +80,15 @@ const option = computed(() => ({
     textStyle: { color: '#e8e6e1', fontFamily: 'IBM Plex Mono', fontSize: 11 },
   },
   xAxis: {
-    type: 'time',
-    maxInterval: 30 * 1000,
+    type: 'category',
+    data: timeLabels.value,
+    boundaryGap: false,
     axisLabel: {
       color: '#6b7280',
       fontFamily: 'IBM Plex Mono',
       fontSize: 10,
       hideOverlap: true,
-      formatter: (val: number) => {
-        const d = new Date(val)
-        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`
-      },
+      interval: 'auto',
     },
     axisLine: { lineStyle: { color: '#2a2d35' } },
     splitLine: { show: false },
