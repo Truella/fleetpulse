@@ -1,6 +1,9 @@
 <template>
-  <main class="dashboard">
-    <section class="dashboard__kpi">
+  <main class="min-h-[calc(100vh-52px)] bg-[var(--color-bg)] px-5 py-4 flex flex-col gap-4
+               max-w-[1600px] mx-auto">
+
+    <!-- KPI row -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       <MetricCard
         label="Active Vehicles"
         :value="metricsStore.activeVehicleCount"
@@ -29,14 +32,16 @@
       />
     </section>
 
-    <section class="dashboard__charts">
+    <!-- Charts -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <AreaChart />
       <LineChart />
       <BarChart />
-      <CandleStickChart />
+      <CandlestickChart />
     </section>
 
-    <section class="dashboard__feed">
+    <!-- Feed -->
+    <section>
       <ActivityFeed />
     </section>
   </main>
@@ -44,14 +49,13 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Ref } from 'vue'
 import { useMetricsStore } from '../../stores/metricsStore'
 import { useFeedStore } from '../../stores/feedStore'
 import MetricCard from '../ui/MetricCard.vue'
 import AreaChart from '../charts/AreaChart.vue'
 import LineChart from '../charts/LineChart.vue'
 import BarChart from '../charts/BarChart.vue'
-import CandleStickChart from '../charts/CandleStickChart.vue'
+import CandlestickChart from '../charts/CandlestickChart.vue'
 import ActivityFeed from '../ui/ActivityFeed.vue'
 
 const metricsStore = useMetricsStore()
@@ -64,8 +68,8 @@ const fuelHistory = ref<number[]>([])
 const alertHistory = ref<number[]>([])
 const onTimeRate = ref(0)
 
-function pushHistory(arr: Ref<number[]>, val: number) {
-  arr.value = [...arr.value.slice(-(MAX_HISTORY - 1)), val];
+function pushHistory(arr: ReturnType<typeof ref<number[]>>, val: number) {
+  arr.value = [...arr.value.slice(-(MAX_HISTORY - 1)), val]
 }
 
 watch(
@@ -85,41 +89,3 @@ watch(
 
 watch(() => feedStore.openAlertCount, val => pushHistory(alertHistory, val))
 </script>
-
-<style scoped>
-.dashboard {
-  padding: 1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: calc(100vh - 52px);
-  background: var(--color-bg);
-}
-
-.dashboard__kpi {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-}
-
-.dashboard__charts {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-}
-
-.dashboard__feed {
-  min-height: 320px;
-}
-
-@media (max-width: 1279px) and (min-width: 768px) {
-  .dashboard__kpi    { grid-template-columns: repeat(2, 1fr); }
-  .dashboard__charts { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 767px) {
-  .dashboard         { padding: 0.75rem; }
-  .dashboard__kpi    { grid-template-columns: 1fr; }
-  .dashboard__charts { grid-template-columns: 1fr; }
-}
-</style>

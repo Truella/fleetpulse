@@ -1,21 +1,30 @@
 <template>
-  <div class="card" :class="`card--${variant}`">
-    <div class="card__header">
-      <span class="card__label">{{ label }}</span>
-      <span v-if="trend !== 0" class="card__trend" :class="trendClass">
+  <div class="relative overflow-hidden rounded-md border border-[var(--color-border)]
+              bg-[var(--color-surface)] px-4 pt-3.5 pb-2.5 flex flex-col gap-1
+              transition-colors duration-200 hover:border-[var(--color-muted)]">
+
+    <div class="flex items-center justify-between">
+      <span class="text-[0.7rem] uppercase tracking-[0.08em] font-medium text-[var(--color-muted)]">
+        {{ label }}
+      </span>
+      <span v-if="trend !== 0" class="text-[0.65rem] font-mono" :class="trendClass">
         {{ trend > 0 ? '▲' : '▼' }}
       </span>
     </div>
 
-    <div class="card__value font-mono" :style="{ color: valueColor }">
+    <div
+      class="text-[1.75rem] font-medium leading-none font-mono tabular-nums transition-colors duration-400"
+      :style="{ color: valueColor }"
+    >
       {{ displayValue }}
     </div>
 
-    <!-- Inline SVG sparkline -->
+    <!-- Sparkline -->
     <svg
       v-if="sparkPoints.length > 1"
-      class="card__sparkline"
+      class="w-full mt-1.5 block"
       :viewBox="`0 0 ${WIDTH} ${HEIGHT}`"
+      :height="HEIGHT"
       preserveAspectRatio="none"
     >
       <defs>
@@ -34,7 +43,7 @@
         stroke-linecap="round"
       />
     </svg>
-    <div v-else class="card__sparkline card__sparkline--empty" />
+    <div v-else class="w-full h-9 mt-1.5 rounded-sm bg-[var(--color-border)] opacity-30" />
   </div>
 </template>
 
@@ -43,7 +52,7 @@ import { computed } from 'vue'
 
 const WIDTH = 120
 const HEIGHT = 36
-let _uidCounter = 0
+let _uid = 0
 
 const props = defineProps<{
   label: string
@@ -54,7 +63,7 @@ const props = defineProps<{
   history: number[]
 }>()
 
-const uid = `mc-${_uidCounter++}`
+const uid = `mc-${_uid++}`
 
 const displayValue = computed(() => {
   const v = props.value.toFixed(props.decimals ?? 0)
@@ -68,25 +77,22 @@ const trend = computed(() => {
 })
 
 const trendClass = computed(() =>
-  trend.value > 0 ? 'card__trend--up' : 'card__trend--down'
+  trend.value > 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'
 )
 
 const accentColor = computed(() => {
   if (props.variant === 'fuel') {
-    if (props.value < 20) return '#ef4444'
-    if (props.value < 50) return '#F59E0B'
-    return '#22c55e'
+    if (props.value < 20) return 'var(--color-danger)'
+    if (props.value < 50) return 'var(--color-warning)'
+    return 'var(--color-success)'
   }
-  if (props.variant === 'alert') return props.value > 0 ? '#ef4444' : '#22c55e'
-  return '#F59E0B'
+  if (props.variant === 'alert') return props.value > 0 ? 'var(--color-danger)' : 'var(--color-success)'
+  return 'var(--color-accent)'
 })
 
-const valueColor = computed(() => {
-  if (props.variant === 'fuel' || props.variant === 'alert') return accentColor.value
-  return 'var(--color-text)'
-})
-
-const variant = computed(() => props.variant ?? 'default')
+const valueColor = computed(() =>
+  props.variant === 'default' || !props.variant ? 'var(--color-text)' : accentColor.value
+)
 
 const sparkPoints = computed(() => {
   const data = props.history.slice(-20)
@@ -95,13 +101,11 @@ const sparkPoints = computed(() => {
   const max = Math.max(...data)
   const range = max - min || 1
   const pad = 2
-  return data
-    .map((v, i) => {
-      const x = (i / (data.length - 1)) * WIDTH
-      const y = HEIGHT - pad - ((v - min) / range) * (HEIGHT - pad * 2)
-      return `${x.toFixed(1)},${y.toFixed(1)}`
-    })
-    .join(' ')
+  return data.map((v, i) => {
+    const x = (i / (data.length - 1)) * WIDTH
+    const y = HEIGHT - pad - ((v - min) / range) * (HEIGHT - pad * 2)
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
 })
 
 const areaPath = computed(() => {
@@ -119,65 +123,3 @@ const areaPath = computed(() => {
   return `M0,${HEIGHT} L${pts[0]} L${pts.join(' L')} L${WIDTH},${HEIGHT} Z`
 })
 </script>
-
-<style scoped>
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 0.875rem 1rem 0.625rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-
-.card:hover {
-  border-color: var(--color-muted);
-}
-
-.card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card__label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-muted);
-  font-weight: 500;
-}
-
-.card__trend {
-  font-size: 0.65rem;
-  font-family: 'IBM Plex Mono', monospace;
-}
-
-.card__trend--up   { color: #22c55e; }
-.card__trend--down { color: #ef4444; }
-
-.card__value {
-  font-size: 1.75rem;
-  font-weight: 500;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  transition: color 0.4s ease;
-}
-
-.card__sparkline {
-  width: 100%;
-  height: 36px;
-  margin-top: 0.375rem;
-  display: block;
-}
-
-.card__sparkline--empty {
-  background: var(--color-border);
-  border-radius: 2px;
-  opacity: 0.3;
-}
-</style>

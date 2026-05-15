@@ -1,44 +1,71 @@
 <template>
-  <header class="topbar">
-    <!-- Left: brand -->
-    <div class="topbar__brand">
-      <span class="topbar__logo">▣</span>
-      <span class="topbar__name">FleetPulse</span>
-      <StatusBadge
-        :severity="uiStore.isPaused ? 'warning' : 'info'"
-        :label="uiStore.isPaused ? 'PAUSED' : 'LIVE'"
-        dot
-      />
+  <!-- Full-width background bar -->
+  <header class="sticky top-0 z-50 bg-[var(--color-surface)] border-b border-[var(--color-border)] overflow-visible">
+    <!-- Constrained inner content -->
+    <div class="flex items-center gap-4 px-5 h-[52px] max-w-[1600px] mx-auto">
+
+      <!-- Brand -->
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-[var(--color-accent)] text-lg leading-none">▣</span>
+        <span class="hidden sm:block font-semibold text-sm tracking-widest uppercase text-[var(--color-text)]">
+          FleetPulse
+        </span>
+        <StatusBadge
+          :severity="uiStore.isPaused ? 'warning' : 'info'"
+          :label="uiStore.isPaused ? 'PAUSED' : 'LIVE'"
+          dot
+        />
+      </div>
+
+      <!-- Time range pills -->
+      <nav class="flex gap-1 mx-auto">
+        <button
+          v-for="r in TIME_RANGES"
+          :key="r.value"
+          class="px-3 py-1 rounded text-xs font-mono font-medium border transition-all duration-150 cursor-pointer"
+          :class="uiStore.timeRange === r.value
+            ? 'text-[var(--color-accent)] border-[var(--color-accent)] bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)]'
+            : 'text-[var(--color-muted)] border-transparent hover:text-[var(--color-text)] hover:border-[var(--color-border)]'"
+          @click="uiStore.setTimeRange(r.value)"
+        >
+          {{ r.label }}
+        </button>
+      </nav>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs border border-[var(--color-border)]
+                 text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-muted)]
+                 transition-all duration-150 cursor-pointer whitespace-nowrap"
+          @click="uiStore.togglePause()"
+        >
+          <span class="text-[0.8rem]">{{ uiStore.isPaused ? '▶' : '⏸' }}</span>
+          <span class="hidden sm:inline text-xs">{{ uiStore.isPaused ? 'Resume' : 'Pause' }}</span>
+          <kbd class="hidden md:inline font-mono text-[0.65rem] px-1 py-0.5 rounded
+                      bg-[var(--color-border)] text-[var(--color-muted)] border border-[var(--color-muted)]">
+            Space
+          </kbd>
+        </button>
+
+        <button
+          class="flex items-center px-2 py-1 rounded text-xs border border-[var(--color-border)]
+                 text-[var(--color-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-muted)]
+                 transition-all duration-150 cursor-pointer"
+          @click="uiStore.toggleTheme()"
+        >
+          {{ uiStore.isDark ? '☀' : '☾' }}
+        </button>
+      </div>
     </div>
 
-    <!-- Center: time range pills -->
-    <nav class="topbar__ranges">
-      <button
-        v-for="r in TIME_RANGES"
-        :key="r.value"
-        class="topbar__pill"
-        :class="{ 'topbar__pill--active': uiStore.timeRange === r.value }"
-        @click="uiStore.setTimeRange(r.value)"
-      >
-        {{ r.label }}
-      </button>
-    </nav>
-
-    <!-- Right: controls -->
-    <div class="topbar__controls">
-      <button class="topbar__btn" @click="uiStore.togglePause()">
-        <span class="topbar__btn-icon">{{ uiStore.isPaused ? '▶' : '⏸' }}</span>
-        <span class="topbar__btn-label">{{ uiStore.isPaused ? 'Resume' : 'Pause' }}</span>
-        <kbd class="topbar__kbd">Space</kbd>
-      </button>
-      <button class="topbar__btn topbar__btn--icon-only" @click="uiStore.toggleTheme()">
-        <span>{{ uiStore.isDark ? '☀' : '☾' }}</span>
-      </button>
-    </div>
-
-    <!-- Paused banner -->
+    <!-- Paused banner — full width -->
     <Transition name="banner">
-      <div v-if="uiStore.isPaused" class="topbar__banner">
+      <div
+        v-if="uiStore.isPaused"
+        class="absolute top-[52px] left-0 right-0 h-[30px] flex items-center justify-center
+               text-xs font-mono text-[#111318] bg-[var(--color-accent)] z-40"
+      >
         Stream paused — click Resume or press Space
       </div>
     </Transition>
@@ -61,141 +88,6 @@ const TIME_RANGES: { label: string; value: TimeRange }[] = [
 </script>
 
 <style scoped>
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0 1.25rem;
-  height: 52px;
-  min-height: 52px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  overflow: visible;
-}
-
-.topbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.topbar__logo {
-  color: var(--color-accent);
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-.topbar__name {
-  font-weight: 600;
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text);
-}
-
-.topbar__ranges {
-  display: flex;
-  gap: 0.25rem;
-  margin: 0 auto;
-}
-
-.topbar__pill {
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-family: 'IBM Plex Mono', monospace;
-  font-weight: 500;
-  color: var(--color-muted);
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-  line-height: 1.4;
-}
-
-.topbar__pill:hover {
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
-
-.topbar__pill--active {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-}
-
-.topbar__controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.topbar__btn {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  color: var(--color-muted);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-  line-height: 1.4;
-}
-
-.topbar__btn:hover {
-  color: var(--color-text);
-  border-color: var(--color-muted);
-}
-
-.topbar__btn--icon-only {
-  padding: 0.25rem 0.5rem;
-}
-
-.topbar__btn-icon { font-size: 0.8rem; }
-
-.topbar__kbd {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.65rem;
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-  background: var(--color-border);
-  color: var(--color-muted);
-  border: 1px solid var(--color-muted);
-}
-
-.topbar__banner {
-  position: absolute;
-  top: 52px;
-  left: 0;
-  right: 0;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-family: 'IBM Plex Mono', monospace;
-  color: #111318;
-  background: var(--color-accent);
-  z-index: 49;
-}
-
-.banner-enter-active,
-.banner-leave-active { transition: opacity 0.2s, transform 0.2s; }
-.banner-enter-from,
-.banner-leave-to { opacity: 0; transform: translateY(-4px); }
-
-@media (max-width: 767px) {
-  .topbar__btn-label { display: none; }
-  .topbar__kbd       { display: none; }
-  .topbar__name      { display: none; }
-}
+.banner-enter-active, .banner-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.banner-enter-from, .banner-leave-to { opacity: 0; transform: translateY(-4px); }
 </style>
